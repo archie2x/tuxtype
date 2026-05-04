@@ -25,6 +25,7 @@ Sreyas Kurumanghat <k.sreyas@gmail.com>
 #include "funcs.h"
 #include "SDL_extras.h"
 #include "convert_utf.h"
+#include "braille.h"
 
 #define MAX_PHRASES 256
 #define MAX_PHRASE_LENGTH 256
@@ -425,7 +426,7 @@ int Phrases(wchar_t* pphrase )
             }
             break;
 
-          case  SDLK_BACKQUOTE:
+          case  SDLK_GRAVE:
             if(shift_pressed)
               tmp='~';
             else
@@ -565,7 +566,7 @@ int Phrases(wchar_t* pphrase )
               tmp=']';
             break;
 
-          case SDLK_QUOTE:
+          case SDLK_APOSTROPHE:
             if(shift_pressed)
               tmp='"';
             else
@@ -1368,11 +1369,11 @@ static void practice_unload_media(void)
   }
 
   if (cheer)
-    Mix_FreeChunk(cheer);
+    ((void)0);
   cheer = NULL;
 
   if (wrong)
-    Mix_FreeChunk(wrong);
+    ((void)0);
   wrong = NULL;
 }
 

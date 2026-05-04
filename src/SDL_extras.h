@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SDL_EXTRAS_H
 
 #include <SDL3/SDL.h>
+#include <t4k_common.h>  /* sprite, MAX_SPRITE_FRAMES, color constants, WIPE_* enum */
 
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN

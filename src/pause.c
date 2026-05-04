@@ -68,10 +68,9 @@ int Pause(void)
 	/* --- stop all sounds, play pause noise --- */
 
 	if (settings.sys_sound) {
- 		Mix_Pause(-1);
-		Mix_PlayChannel(-1, pause_sfx, 0);
-		sfx_volume = Mix_Volume(-1, -1);  // get sfx volume w/o changing it
-		mus_volume = Mix_VolumeMusic(-1); // get mus volume w/o changing it
+		/* Audio pause + volume queries stubbed for SDL3 port (task #13). */
+		sfx_volume = settings.sfx_volume;
+		mus_volume = settings.mus_volume;
 	}
 
 	/* --- show the pause screen --- */
@@ -89,7 +88,7 @@ int Pause(void)
 
 	T4K_UpdateRect(screen, NULL);
 
-	SDL_EnableKeyRepeat( 1, 20 );
+	/* SDL_EnableKeyRepeat removed in SDL3. */
 
 	/* --- wait for space, click, or exit --- */
 
@@ -136,9 +135,9 @@ int Pause(void)
 					break;
 			}
 		if (settings.sys_sound && mousePressed) {
-			int x, y;
-
-			SDL_GetMouseState(&x, &y);
+			float fx, fy;
+			SDL_GetMouseState(&fx, &fy);
+			int x = (int)fx, y = (int)fy;
 			/* check to see if they clicked on a button */
 
 			if (inRect(rectUp, x, y)) {
@@ -166,32 +165,21 @@ int Pause(void)
 		}
 
 		if (settings.sys_sound) {
+			/* Audio volume + SFX preview stubbed for SDL3 port (task #13). */
+			const int MIX_MAX_VOLUME = 128;
+			if (sfx_volume > MIX_MAX_VOLUME) sfx_volume = MIX_MAX_VOLUME;
+			if (sfx_volume < 0) sfx_volume = 0;
+			if (mus_volume > MIX_MAX_VOLUME) mus_volume = MIX_MAX_VOLUME;
+			if (mus_volume < 0) mus_volume = 0;
 
-			if (sfx_volume > MIX_MAX_VOLUME)
-				sfx_volume = MIX_MAX_VOLUME;
-			if (sfx_volume < 0)
-				sfx_volume = 0;
-			if (mus_volume > MIX_MAX_VOLUME)
-				mus_volume = MIX_MAX_VOLUME;
-			if (mus_volume < 0)
-				mus_volume = 0;
-
-			if ((mus_volume != old_mus_volume) || 
+			if ((mus_volume != old_mus_volume) ||
 			    (sfx_volume != old_sfx_volume)) {
-
-				if (mus_volume != old_mus_volume)
-/* Mix_VolumeMusic stubbed for SDL3 port */
-
 				if (sfx_volume != old_sfx_volume) {
-/* Mix_Volume stubbed for SDL3 port */
-					if (tocks%4==0)
-						Mix_PlayChannel(-1, pause_sfx, 0);
 					tocks++;
-			    }
-
+				}
 				draw_vols(sfx_volume, mus_volume);
-				settings.mus_volume=mus_volume;
-				settings.sfx_volume=sfx_volume;
+				settings.mus_volume = mus_volume;
+				settings.sfx_volume = sfx_volume;
 				T4K_UpdateRect(screen, NULL);
 			}
 		}
@@ -201,14 +189,11 @@ int Pause(void)
 
 	/* --- Return to previous state --- */
 
-	SDL_EnableKeyRepeat( 0, SDL_DEFAULT_REPEAT_INTERVAL );
+	/* SDL_EnableKeyRepeat removed in SDL3 (no equivalent needed). */
 
 	SDL_HideCursor();
 
-	if (settings.sys_sound) {
-		Mix_PlayChannel(-1, pause_sfx, 0);
-		Mix_Resume(-1);
-	}
+	/* Audio resume stubbed (task #13). */
 
 	pause_unload_media();
 
@@ -241,7 +226,7 @@ static void pause_load_media(void) {
 static void pause_unload_media(void) {
 	if (settings.sys_sound)
         {
-	  Mix_FreeChunk(pause_sfx);
+	  /* Mix_FreeChunk stubbed for SDL3 port (task #13). */
 	  pause_sfx = NULL;
         }
 	SDL_DestroySurface(up);

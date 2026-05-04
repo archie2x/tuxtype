@@ -30,6 +30,7 @@ find_package(t4k_common REQUIRED CONFIG)
 
 # Intl (gettext libintl) — Homebrew on macOS, glibc on Linux
 find_package(Intl REQUIRED)
+find_package(Iconv REQUIRED)
 
 # ---------------------------------------------------------------------------
 # Runtime path-prefix definitions baked into the binary
@@ -97,6 +98,7 @@ target_link_libraries(tuxtype PRIVATE
     SDL3_image::SDL3_image
     SDL3_ttf::SDL3_ttf
     Intl::Intl
+    Iconv::Iconv
 )
 
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")

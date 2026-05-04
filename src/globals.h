@@ -79,7 +79,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // FIXME if we really need these, make them into functions rather than
 // "evil" macros
 #define to_upper(c) (((c) >= 'a' && (c) <= 'z') ? (c) -32 : (c))
-#define COL2RGB( col ) SDL_MapRGB( screen->format, col->r, col->g, col->b )
+#define COL2RGB( col ) SDL_MapRGB( SDL_GetPixelFormatDetails(screen->format), NULL, col->r, col->g, col->b )
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 
@@ -165,6 +165,8 @@ extern struct braille_dict braille_key_value_map[100];
 extern game_option_type settings;
 extern SDL_Surface* screen;
 extern SDL_Event  event;
+/* The SDL3 window created in setup.c::GraphicsInit(). NULL until then. */
+extern SDL_Window* tt_window;
 
 /* these will store the resolution used by the OS when we start, so we */
 /* can run fullscreen at the user's preferred resolution:              */

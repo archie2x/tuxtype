@@ -1432,7 +1432,7 @@ static void run_script(void)
           sounds[numWavs] = LoadSound( curItem->data );
 
           // let audio.c handle calls to SDL_mixer
-          //Mix_PlayChannel( numWavs, sounds[numWavs], -curItem->loop );
+          //((void)0);
           
           PlaySoundLoop( sounds[numWavs], -curItem->loop );
           numWavs++;
@@ -1469,7 +1469,7 @@ static void run_script(void)
                     if (inRect(clickRects[j], event.button.x, event.button.y))
                      PlaySound( clickWavs[j] );
                      // let audio.c handle calls to SDL_mixer
-                     //Mix_PlayChannel(numWavs + j, clickWavs[j], 0);
+                     //((void)0);
                   }
                   break;
                 }
@@ -1623,17 +1623,17 @@ static void run_script(void)
         for (i=0; i<numWavs; i++)
         {
           // let audio.c handle calls to SDL_mixer
-          //Mix_HaltChannel(i);
+          //((void)0);
 
-          Mix_FreeChunk(sounds[i]);
+          ((void)0);
         }
 
         for (i = 0; i < numClicks; i++)
         {
           // let audio.c handle calls to SDL_mixer
-          //Mix_HaltChannel(i + numWavs);
+          //((void)0);
 
-          Mix_FreeChunk(clickWavs[i]);
+          ((void)0);
         }
       }
     }
