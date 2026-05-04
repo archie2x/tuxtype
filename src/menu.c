@@ -207,16 +207,18 @@ int handle_activity(int act, int param)
 /* load menu trees from disk and prerender them */
 void LoadMenus(void)
 {
+    fprintf(stderr, "[trace] LoadMenus: SetMenuSpritePrefix\n");
     T4K_SetMenuSpritePrefix("sprites");
+    fprintf(stderr, "[trace] LoadMenus: SetActivitiesList\n");
     T4K_SetActivitiesList(N_OF_ACTIVITIES, activities);
+    fprintf(stderr, "[trace] LoadMenus: T4K_LoadMenu(main_menu.xml)\n");
     /* main menu */
     T4K_LoadMenu(MENU_MAIN, "main_menu.xml");
-
-    //NOTE level_menu.xml doesn't exist, and as it's not being used I'm skipping the load for now -Cheez
-    /* difficulty menu */
-    //  T4K_LoadMenu(MENU_DIFFICULTY, "level_menu.xml");
+    fprintf(stderr, "[trace] LoadMenus: SetMenuFontSize\n");
     T4K_SetMenuFontSize(MF_BESTFIT, 0);
+    fprintf(stderr, "[trace] LoadMenus: PrerenderAll\n");
     T4K_PrerenderAll();
+    fprintf(stderr, "[trace] LoadMenus: done\n");
 }
 
 

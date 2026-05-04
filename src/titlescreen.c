@@ -165,50 +165,71 @@ void TitleScreen(void)
 		settings.menu_music = 1;
 	}
 
-    fprintf(stderr,DATA_PREFIX);
-    
-    
-    load_image_data();
+    fprintf(stderr, "DATA_PREFIX=%s\n", DATA_PREFIX);
+    fprintf(stderr, "[trace] before load_image_data\n");
+    int img_ok = load_image_data();
+    fprintf(stderr, "[trace] load_image_data returned %d\n", img_ok);
     load_sound_data();
+    fprintf(stderr, "[trace] after load_sound_data; screen=%p w=%d h=%d\n",
+            (void*)screen, screen?screen->w:-1, screen?screen->h:-1);
 
 
     
 
     /* We show the logo until two seconds from this time */
     start_time = SDL_GetTicks();
+    fprintf(stderr, "[trace] start_time=%llu screen->format=%d\n",
+            (unsigned long long)start_time, (int)screen->format);
 
     /* display the Standby screen */
-    SDL_FillSurfaceRect(screen, NULL, SDL_MapRGB(SDL_GetPixelFormatDetails(screen->format), NULL, 0, 0, 0));
+    const SDL_PixelFormatDetails* pfd = SDL_GetPixelFormatDetails(screen->format);
+    fprintf(stderr, "[trace] pfd=%p\n", (void*)pfd);
+    Uint32 black_color = SDL_MapRGB(pfd, NULL, 0, 0, 0);
+    fprintf(stderr, "[trace] black_color=%u; about to FillSurfaceRect\n", black_color);
+    SDL_FillSurfaceRect(screen, NULL, black_color);
+    fprintf(stderr, "[trace] FillSurfaceRect done\n");
 
     logo = T4K_LoadImage(standby_path, IMG_REGULAR);
+    fprintf(stderr, "[trace] T4K_LoadImage(standby) returned %p\n", (void*)logo);
     if(logo)
     {
+        fprintf(stderr, "[trace] logo w=%d h=%d screen w=%d h=%d\n",
+                logo->w, logo->h, screen->w, screen->h);
         /* Center horizontally and vertically */
         logo_rect.x = (screen->w - logo->w) / 2;
         logo_rect.y = (screen->h - logo->h) / 2;
         logo_rect.w = logo->w;
         logo_rect.h = logo->h;
-
+        fprintf(stderr, "[trace] before BlitSurface\n");
         SDL_BlitSurface(logo, NULL, screen, &logo_rect);
+        fprintf(stderr, "[trace] before DestroySurface\n");
         SDL_DestroySurface(logo);
     }
 
+    fprintf(stderr, "[trace] before T4K_UpdateRect\n");
     T4K_UpdateRect(screen, NULL);
+    fprintf(stderr, "[trace] after T4K_UpdateRect\n");
 
     /* Play "harp" greeting sound lifted from Tux Paint */
     playsound(SND_HARP);
+    fprintf(stderr, "[trace] before LoadMenus\n");
 
     /* load menus */
     LoadMenus();
+    fprintf(stderr, "[trace] before T4K_LoadBothBkgds; bkg_path=%s\n", bkg_path);
 
     /* load backgrounds */
     T4K_LoadBothBkgds(bkg_path, &fs_bkg, &win_bkg);
+    fprintf(stderr, "[trace] before T4K_SetMenuSounds; SND_POP=%p SND_TOCK=%p\n",
+            (void*)sounds[SND_POP], (void*)sounds[SND_TOCK]);
     T4K_SetMenuSounds(NULL, sounds[SND_POP], sounds[SND_TOCK]);
+    fprintf(stderr, "[trace] before T4K_OnResolutionSwitch\n");
     T4K_OnResolutionSwitch(&HandleTitleScreenResSwitch);
 
+    fprintf(stderr, "[trace] post LoadBothBkgds: fs=%p win=%p\n", (void*)fs_bkg, (void*)win_bkg);
     if(fs_bkg == NULL || win_bkg == NULL)
     {
-        fprintf(stderr, "Backgrounds were not properly loaded, exiting");
+        fprintf(stderr, "Backgrounds were not properly loaded, exiting\n");
         if(fs_bkg)
             SDL_DestroySurface(fs_bkg);
         if(win_bkg)
@@ -217,9 +238,10 @@ void TitleScreen(void)
     }
 
     /* load titlescreen images */
+    fprintf(stderr, "[trace] before RenderTitleScreen\n");
     if(RenderTitleScreen() == 0)
     {
-        fprintf(stderr, "Media was not properly loaded, exiting");
+        fprintf(stderr, "Media was not properly loaded, exiting\n");
         return;
     }
 

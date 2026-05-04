@@ -15,6 +15,16 @@ project(tuxtype
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules")
 include(GNUInstallDirs)
 
+# Bake the link-time library locations into the installed binary's rpath so
+# `tuxtype` can find libt4k_common.dylib without DYLD_LIBRARY_PATH.
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
+# Also add the standard "next to the binary in /lib" location for portability.
+if(APPLE)
+    set(CMAKE_INSTALL_RPATH "@executable_path/../${CMAKE_INSTALL_LIBDIR}")
+else()
+    set(CMAKE_INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
+endif()
+
 option(ENABLE_I18N "Build with gettext/i18n support" ON)
 
 # ---------------------------------------------------------------------------

@@ -143,7 +143,7 @@ extern struct braille_dict braille_key_value_map[100];
 #define GAME_FONT_SIZE	20
 #define DEFAULT_LOCALE	        "en_US.UTF-8"
 #define DEFAULT_USE_ENGLISH 1
-#define DEFAULT_FULLSCREEN 1
+#define DEFAULT_FULLSCREEN 0
 #define DEFAULT_BRAILLE 0
 #define DEFAULT_TTS 0
 #define DEFAULT_TTS_VOLUME 100
