@@ -36,7 +36,12 @@ find_package(SDL3_ttf REQUIRED CONFIG)
 # SDL3_mixer is intentionally not used — audio is stubbed in t4k_common too.
 # See task #13 for the real port.
 
-find_package(t4k_common REQUIRED CONFIG)
+# Either built as part of a parent super-project (add_subdirectory(t4kcommon)
+# above us → target already defined) or against an installed t4kcommon
+# (find_package looks up the CMake config-package).
+if(NOT TARGET t4k_common::t4k_common)
+    find_package(t4k_common REQUIRED CONFIG)
+endif()
 
 # Intl (gettext libintl) — Homebrew on macOS, glibc on Linux
 find_package(Intl REQUIRED)
