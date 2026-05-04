@@ -83,10 +83,12 @@ void GraphicsInit(void)
     exit(2);
   }
 
-  /* Tell t4k_common about the window so T4K_GetScreen / T4K_UpdateRect /
-   * T4K_SwitchScreenMode all work. screen is fetched from the window. */
+  /* Tell t4k_common about the window. It allocates a fixed-resolution
+   * backing surface (640x480) that all rendering targets — t4k_common
+   * scale-blits it onto the actual window surface in T4K_UpdateRect.
+   * Use T4K_GetScreen() so tuxtype draws to the same backing. */
   T4K_RegisterWindow(tt_window);
-  screen = SDL_GetWindowSurface(tt_window);
+  screen = T4K_GetScreen();
 
   /* seticon() commented out — SDL3 expects an SDL_Surface* via
    * SDL_SetWindowIcon; do that in a follow-up. */
