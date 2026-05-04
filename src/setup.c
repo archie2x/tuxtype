@@ -641,18 +641,18 @@ static void seticon(void)
   }
 
   /* Set up key for transparency: */
-  colorkey = SDL_MapRGB(icon->format, 255, 0, 255);
+  colorkey = SDL_MapRGB(SDL_GetPixelFormatDetails(icon->format), NULL, 255, 0, 255);
   SDL_SetColorKey(icon, SDL_SRCCOLORKEY, colorkey);              
 
   SDL_WM_SetIcon(icon,NULL);
 
-  SDL_FreeSurface(icon);
+  SDL_DestroySurface(icon);
 }
 
 
 void Cleanup(void)
 {
-  SDL_FreeSurface(screen);
+  SDL_DestroySurface(screen);
   screen = NULL;
   Cleanup_SDL_Text();
   SDL_Quit();

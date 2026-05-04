@@ -35,7 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define GLOBALS_H
 
 // Autoheader-derived defs in here:
-#include "config.h"
+
 
 // C library includes:
 #include <string.h>
@@ -49,9 +49,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <locale.h>
 
 // SDL includes:
-#include "SDL.h"
-#include "SDL_image.h"
-#include "SDL_mixer.h"
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
+
 /* NOTE only SDL_extras.c/.h now knows about SDL_ttf or SDL_Pango. */
 
 // Translation stuff: 
@@ -260,8 +260,6 @@ enum
 };
 
 
-#endif
-
 extern const int debug_titlescreen;
 
 
@@ -352,3 +350,6 @@ extern char **lesson_list_titles;
 
 
 
+
+
+#endif /* GLOBALS_H */

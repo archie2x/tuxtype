@@ -67,12 +67,12 @@ void DrawButton(SDL_Rect* target_rect,
                                           target_rect->h,
                                           32,
                                           rmask, gmask, bmask, amask);
-  Uint32 color = SDL_MapRGBA(tmp_surf->format, r, g, b, a);
-  SDL_FillRect(tmp_surf, NULL, color);
+  Uint32 color = SDL_MapRGBA(SDL_GetPixelFormatDetails(tmp_surf->format), NULL, r, g, b, a);
+  SDL_FillSurfaceRect(tmp_surf, NULL, color);
   RoundCorners(tmp_surf, radius);
 
   SDL_BlitSurface(tmp_surf, NULL, screen, target_rect);
-  SDL_FreeSurface(tmp_surf);
+  SDL_DestroySurface(tmp_surf);
 }
 
 
@@ -90,7 +90,7 @@ void RoundCorners(SDL_Surface* s, Uint16 radius)
   if (SDL_LockSurface(s) == -1)
     return;
 
-  bytes_per_pix = s->format->BytesPerPixel;
+  bytes_per_pix = SDL_BYTESPERPIXEL(s->format);
   if (bytes_per_pix != 4)
     return;
 
@@ -101,7 +101,7 @@ void RoundCorners(SDL_Surface* s, Uint16 radius)
     radius = (s->h)/2;
 
 
-  alpha_mask = s->format->Amask;
+  alpha_mask = SDL_GetPixelFormatDetails(s->format)->Amask;
 
   /* Now round off corners: */
   /* upper left:            */
@@ -253,19 +253,19 @@ SDL_Surface* Flip( SDL_Surface *in, int x, int y ) {
         if (flags & SDL_SRCCOLORKEY) {
                 in->flags |= SDL_SRCCOLORKEY;
                 in->format->colorkey = colorkey;
-                tmp = SDL_DisplayFormat(out);
-                SDL_FreeSurface(out);
+                tmp = SDL_DuplicateSurface(out);
+                SDL_DestroySurface(out);
                 out = tmp;
                 out->flags |= SDL_SRCCOLORKEY;
                 out->format->colorkey = colorkey;
         } else if (flags & SDL_SRCALPHA) {
                 in->flags |= SDL_SRCALPHA;
-                tmp = SDL_DisplayFormatAlpha(out);
-                SDL_FreeSurface(out);
+                tmp = SDL_DuplicateSurface(out);
+                SDL_DestroySurface(out);
                 out = tmp;
         } else {
-                tmp = SDL_DisplayFormat(out);
-                SDL_FreeSurface(out);
+                tmp = SDL_DuplicateSurface(out);
+                SDL_DestroySurface(out);
                 out = tmp;
         }
 
@@ -378,8 +378,8 @@ SDL_Surface* Blend(SDL_Surface* S1, SDL_Surface* S2, float gamma)
   if (S2 != NULL)
     SDL_UnlockSurface(S2);
 
-  ret = SDL_DisplayFormatAlpha(tmpS);
-  SDL_FreeSurface(tmpS);
+  ret = SDL_DuplicateSurface(tmpS);
+  SDL_DestroySurface(tmpS);
 
   return ret;
 }
@@ -409,9 +409,9 @@ void DarkenScreen(Uint8 bits)
   return;
 #endif
 
-  Uint32 rm = screen->format->Rmask;
-  Uint32 gm = screen->format->Gmask;
-  Uint32 bm = screen->format->Bmask;
+  Uint32 rm = SDL_GetPixelFormatDetails(screen->format)->Rmask;
+  Uint32 gm = SDL_GetPixelFormatDetails(screen->format)->Gmask;
+  Uint32 bm = SDL_GetPixelFormatDetails(screen->format)->Bmask;
   int x, y;
 
   /* (realistically, 1 and 2 are the only useful values) */
@@ -466,9 +466,9 @@ void SwitchScreenMode(void)
   }
   else
   {
-    SDL_FreeSurface(oldscreen);
+    SDL_DestroySurface(oldscreen);
     oldscreen = NULL;
-    SDL_UpdateRect(screen, 0, 0, 0, 0);
+    T4K_UpdateRect(screen, NULL);
   }
 
 }
@@ -479,8 +479,8 @@ int WaitForKeypress(void)
   SDL_Event evt;
   while (1)
     while (SDL_PollEvent(&evt) )
-      if (evt.type == SDL_KEYDOWN)
-        return evt.key.keysym.sym;
+      if (evt.type == SDL_EVENT_KEY_DOWN)
+        return evt.key.key;
       else SDL_Delay(50);
 }
 /* Swiped shamelessly from TuxPaint
@@ -513,11 +513,11 @@ SDL_Surface* zoom(SDL_Surface* src, int new_w, int new_h)
   /* Create surface for zoom: */
 
   s = SDL_CreateRGBSurface(src->flags,        /* SDL_SWSURFACE, */
-                           new_w, new_h, src->format->BitsPerPixel,
-                           src->format->Rmask,
-                           src->format->Gmask,
-                           src->format->Bmask,
-                           src->format->Amask);
+                           new_w, new_h, SDL_BITSPERPIXEL(src->format),
+                           SDL_GetPixelFormatDetails(src->format)->Rmask,
+                           SDL_GetPixelFormatDetails(src->format)->Gmask,
+                           SDL_GetPixelFormatDetails(src->format)->Bmask,
+                           SDL_GetPixelFormatDetails(src->format)->Amask);
 
   if (s == NULL)
   {
@@ -532,8 +532,8 @@ SDL_Surface* zoom(SDL_Surface* src, int new_w, int new_h)
 
   /* Now assign function pointers to correct functions based */
   /* on data format of original and zoomed surfaces:         */
-  getpixel = getpixels[src->format->BytesPerPixel];
-  putpixel = putpixels[s->format->BytesPerPixel];
+  getpixel = getpixels[SDL_BYTESPERPIXEL(src->format)];
+  putpixel = putpixels[SDL_BYTESPERPIXEL(s->format)];
 
   SDL_LockSurface(src);
   SDL_LockSurface(s);
@@ -594,7 +594,7 @@ SDL_Surface* zoom(SDL_Surface* src, int new_w, int new_h)
       a = (one_minus_y * n1 + fraction_y * n2);
 
       /* and put them into our new surface: */
-      putpixel(s, x, y, SDL_MapRGBA(s->format, r, g, b, a));
+      putpixel(s, x, y, SDL_MapRGBA(SDL_GetPixelFormatDetails(s->format), NULL, r, g, b, a));
 
     }
   }
@@ -691,7 +691,7 @@ int TransWipe(const SDL_Surface* newbkg, int type, int segments, int duration)
       src.w = screen->w;
       src.h = screen->h;
       SDL_BlitSurface(newbkg, NULL, screen, &src);
-      SDL_Flip(screen);
+      T4K_UpdateRect(screen, NULL);
 
       break;
     } 
@@ -730,7 +730,7 @@ int TransWipe(const SDL_Surface* newbkg, int type, int segments, int duration)
       src.w = screen->w;
       src.h = screen->h;
       SDL_BlitSurface(newbkg, NULL, screen, &src);
-      SDL_Flip(screen);
+      T4K_UpdateRect(screen, NULL);
 
       break;
     }
@@ -785,7 +785,7 @@ int TransWipe(const SDL_Surface* newbkg, int type, int segments, int duration)
       src.w = screen->w;
       src.h = screen->h;
       SDL_BlitSurface(newbkg, NULL, screen, &src);
-      SDL_Flip(screen);
+      T4K_UpdateRect(screen, NULL);
 
       break;
     }
@@ -1032,7 +1032,7 @@ void UpdateScreen(int* frame)
 //  if (SNOW_on) 
 //    SDL_UpdateRects(screen, SNOW_add( (SDL_Rect*)&dstupdate, numupdates ), SNOW_rects);
 //  else 
-    SDL_UpdateRects(screen, numupdates, dstupdate);
+    if (t4k_window) SDL_UpdateWindowSurfaceRects(t4k_window, dstupdate, numupdates);
 
   numupdates = 0;
   *frame = *frame + 1;
@@ -1164,7 +1164,7 @@ int EraseObject(SDL_Surface* surf, int x, int y)
 
 /*-- file-scope variables and local file prototypes for SDL_Pango-based code: */
 #ifdef HAVE_LIBSDL_PANGO
-#include "SDL_Pango.h"
+
 
 SDLPango_Context* context = NULL;
 static SDLPango_Matrix* SDL_Colour_to_SDLPango_Matrix(const SDL_Color* cl);
@@ -1174,7 +1174,7 @@ static int Set_SDL_Pango_Font_Size(int size);
 
 /*-- file-scope variables and local file prototypes for SDL_ttf-based code: */
 #else
-#include "SDL_ttf.h"
+#include <SDL3_ttf/SDL_ttf.h>
 /* We cache fonts here once loaded to improve performance: */
 TTF_Font* font_list[MAX_FONT_SIZE + 1] = {NULL};
 static void free_font_list(void);
@@ -1303,8 +1303,8 @@ DEBUGCODE
                              32,
                              rmask, gmask, bmask, amask);
   /* Use color key for eventual transparency: */
-  color_key = SDL_MapRGB(bg->format, 01, 01, 01);
-  SDL_FillRect(bg, NULL, color_key);
+  color_key = SDL_MapRGB(SDL_GetPixelFormatDetails(bg->format), NULL, 01, 01, 01);
+  SDL_FillSurfaceRect(bg, NULL, color_key);
 
   /* Now draw black outline/shadow 2 pixels on each side: */
   dstrect.w = black_letters->w;
@@ -1316,7 +1316,7 @@ DEBUGCODE
     for (dstrect.y = 1; dstrect.y < 3; dstrect.y++)
       SDL_BlitSurface(black_letters , NULL, bg, &dstrect );
 
-  SDL_FreeSurface(black_letters);
+  SDL_DestroySurface(black_letters);
 
   /* --- Put the color version of the text on top! --- */
 #ifdef HAVE_LIBSDL_PANGO
@@ -1346,12 +1346,12 @@ DEBUGCODE
   dstrect.x = 1;
   dstrect.y = 1;
   SDL_BlitSurface(white_letters, NULL, bg, &dstrect);
-  SDL_FreeSurface(white_letters);
+  SDL_DestroySurface(white_letters);
 
   /* --- Convert to the screen format for quicker blits --- */
   SDL_SetColorKey(bg, SDL_SRCCOLORKEY|SDL_RLEACCEL, color_key);
-  out = SDL_DisplayFormatAlpha(bg);
-  SDL_FreeSurface(bg);
+  out = SDL_DuplicateSurface(bg);
+  SDL_DestroySurface(bg);
 
 DEBUGCODE
   { fprintf( stderr, "\nLeaving BlackOutline(): \n"); }
