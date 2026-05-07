@@ -210,7 +210,7 @@ extern int fs_res_y;
 #define MAX_UNICODES    1024
 
 #define WAIT_MS		2500
-#define	FRAMES_PER_SEC	15
+#define FRAMES_PER_SEC	15
 #define FULL_CIRCLE	140
 
 
