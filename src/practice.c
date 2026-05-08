@@ -157,8 +157,7 @@ int Phrases(wchar_t* pphrase )
 
 	//Moved by N.x.L
   int     key           = 0;
-  wchar_t tmp           = 0;
-  int     shift_pressed = 0;
+  int     cap_prefix    = 0;
   int     check_key     = 0;
 
   /* Load all needed graphics, strings, sounds.... */
@@ -405,17 +404,27 @@ int Phrases(wchar_t* pphrase )
 
     while  (SDL_PollEvent(&event))
     {
+        /* The character the user just typed (or that braille decoded to);
+         * consumed by updatekeylist + the phrase-cursor hit-test below.
+         * Set in TEXT_INPUT (normal) or KEY_UP (braille) branches. */
+        wchar_t typed_ch = 0;
 
         if (event.type == SDL_EVENT_KEY_DOWN)
         {
-            key           = GetIndex((wchar_t)event.key.key);
-            shift_pressed = event.key.mod & SDL_KMOD_SHIFT;
-            tmp           = -1;
+            key = GetIndex((wchar_t)event.key.key);
+            /* cap_prefix is purely a braille-capital-prefix flag (set
+             * by the chord-prefix decode in KEY_UP). The physical Shift
+             * key shouldn't capitalize braille input — real Perkins
+             * braillers don't have one; the student must learn the 'g'
+             * prefix. TEXT_INPUT already delivers correctly-cased
+             * glyphs, so we don't need OS shift state in normal mode
+             * either. */
 
-            /* TODO I must be missing something - why aren't we just looking at */
-            /* the event.key.key value instead of going through this */
-            /* giant switch statement?                                          */
-
+            /* Only control keys here. Typed characters arrive via
+             * SDL_EVENT_TEXT_INPUT below — that path is the only consumer
+             * of `typed_ch` since the non-braille branch at the end of this
+             * block sets check_key=0, which short-circuits the
+             * key-comparison stage further down. */
             switch (event.key.key)
             {
             case SDLK_ESCAPE:
@@ -450,319 +459,6 @@ int Phrases(wchar_t* pphrase )
                 }
                 break;
 
-            case SDLK_GRAVE:
-                if (shift_pressed)
-                {
-                    tmp = '~';
-                }
-                else
-                {
-                    tmp = '`';
-                }
-                break;
-
-            case SDLK_COMMA:
-                if (shift_pressed)
-                {
-                    tmp = '<';
-                }
-                else
-                {
-                    tmp = ',';
-                }
-                break;
-
-            case SDLK_MINUS:
-                if (shift_pressed)
-                {
-                    tmp = '_';
-                }
-                else
-                {
-                    tmp = '-';
-                }
-                break;
-
-            case SDLK_PERIOD:
-                if (shift_pressed)
-                {
-                    tmp = '>';
-                }
-                else
-                {
-                    tmp = '.';
-                }
-                break;
-
-            case SDLK_SLASH:
-                if (shift_pressed)
-                {
-                    tmp = '?';
-                }
-                else
-                {
-                    tmp = '/';
-                }
-                break;
-
-            case SDLK_0:
-                if (shift_pressed)
-                {
-                    tmp = ')';
-                }
-                else
-                {
-                    tmp = '0';
-                }
-                break;
-
-            case SDLK_1:
-                if (shift_pressed)
-                {
-                    tmp = '!';
-                }
-                else
-                {
-                    tmp = '1';
-                }
-                break;
-
-            case SDLK_2:
-                if (shift_pressed)
-                {
-                    tmp = '@';
-                }
-                else
-                {
-                    tmp = '2';
-                }
-                break;
-
-            case SDLK_3:
-                if (shift_pressed)
-                {
-                    tmp = '#';
-                }
-                else
-                {
-                    tmp = '3';
-                }
-                break;
-
-            case SDLK_4:
-                if (shift_pressed)
-                {
-                    tmp = '$';
-                }
-                else
-                {
-                    tmp = '4';
-                }
-                break;
-
-            case SDLK_5:
-                if (shift_pressed)
-                {
-                    tmp = '%';
-                }
-                else
-                {
-                    tmp = '5';
-                }
-                break;
-
-            case SDLK_6:
-                if (shift_pressed)
-                {
-                    tmp = '^';
-                }
-                else
-                {
-                    tmp = '6';
-                }
-                break;
-
-            case SDLK_7:
-                if (shift_pressed)
-                {
-                    tmp = '&';
-                }
-                else
-                {
-                    tmp = '7';
-                }
-                break;
-
-            case SDLK_8:
-                if (shift_pressed)
-                {
-                    tmp = '*';
-                }
-                else
-                {
-                    tmp = '8';
-                }
-                break;
-
-            case SDLK_9:
-                if (shift_pressed)
-                {
-                    tmp = '(';
-                }
-                else
-                {
-                    tmp = '9';
-                }
-                break;
-
-            case SDLK_SEMICOLON:
-                if (shift_pressed)
-                {
-                    tmp = ':';
-                }
-                else
-                {
-                    tmp = ';';
-                }
-                break;
-
-            case SDLK_EQUALS:
-                if (shift_pressed)
-                {
-                    tmp = '+';
-                }
-                else
-                {
-                    tmp = '=';
-                }
-                break;
-
-            case SDLK_LEFTBRACKET:
-                if (shift_pressed)
-                {
-                    tmp = '{';
-                }
-                else
-                {
-                    tmp = '[';
-                }
-                break;
-
-            case SDLK_BACKSLASH:
-                if (shift_pressed)
-                {
-                    tmp = '|';
-                }
-                else
-                {
-                    tmp = '\\';
-                }
-                break;
-
-            case SDLK_RIGHTBRACKET:
-                if (shift_pressed)
-                {
-                    tmp = '}';
-                }
-                else
-                {
-                    tmp = ']';
-                }
-                break;
-
-            case SDLK_APOSTROPHE:
-                if (shift_pressed)
-                {
-                    tmp = '"';
-                }
-                else
-                {
-                    tmp = '\'';
-                }
-                break;
-
-            case SDLK_SPACE:
-                tmp = ' ';
-                break;
-            case SDLK_A:
-                tmp = 'a';
-                break;
-            case SDLK_B:
-                tmp = 'b';
-                break;
-            case SDLK_C:
-                tmp = 'c';
-                break;
-            case SDLK_D:
-                tmp = 'd';
-                break;
-            case SDLK_E:
-                tmp = 'e';
-                break;
-            case SDLK_F:
-                tmp = 'f';
-                break;
-            case SDLK_G:
-                tmp = 'g';
-                break;
-            case SDLK_H:
-                tmp = 'h';
-                break;
-            case SDLK_I:
-                tmp = 'i';
-                break;
-            case SDLK_J:
-                tmp = 'j';
-                break;
-            case SDLK_K:
-                tmp = 'k';
-                break;
-            case SDLK_L:
-                tmp = 'l';
-                break;
-            case SDLK_M:
-                tmp = 'm';
-                break;
-            case SDLK_N:
-                tmp = 'n';
-                break;
-            case SDLK_O:
-                tmp = 'o';
-                break;
-            case SDLK_P:
-                tmp = 'p';
-                break;
-            case SDLK_Q:
-                tmp = 'q';
-                break;
-            case SDLK_R:
-                tmp = 'r';
-                break;
-            case SDLK_S:
-                tmp = 's';
-                break;
-            case SDLK_T:
-                tmp = 't';
-                break;
-            case SDLK_U:
-                tmp = 'u';
-                break;
-            case SDLK_V:
-                tmp = 'v';
-                break;
-            case SDLK_W:
-                tmp = 'w';
-                break;
-            case SDLK_X:
-                tmp = 'x';
-                break;
-            case SDLK_Y:
-                tmp = 'y';
-                break;
-            case SDLK_Z:
-                tmp = 'z';
-                break;
-            /* ignore other keys: */
             default:
                 break;
             }
@@ -787,19 +483,20 @@ int Phrases(wchar_t* pphrase )
         }
         /* End of "if(event.type == SDL_EVENT_KEY_DOWN)" block  --*/
 
-        else if (event.type == SDL_EVENT_TEXT_INPUT)
+        else if (event.type == SDL_EVENT_TEXT_INPUT && !settings.braille)
         {
             /* event.text.text is a UTF-8 string; one composed glyph at a
-		   * time in practice, but be defensive — only consume the first. */
+             * time in practice, but be defensive — only consume the first.
+             * Skipped in braille mode: there the dot keys (f/d/j/k/...)
+             * are accumulated by KEY_DOWN and decoded on KEY_UP. */
             wchar_t   typed = 0;
             mbstate_t mbs   = {0};
             if (mbrtowc(&typed, event.text.text, strlen(event.text.text),
                         &mbs) > 0)
             {
-                tmp           = typed;
-                key           = GetIndex(tmp);
-                shift_pressed = 0; /* TEXT_INPUT is already correctly cased. */
-                check_key     = 1;
+                typed_ch  = typed;
+                key       = GetIndex(typed_ch);
+                check_key = 1;
             }
         }
         else if (event.type == SDL_EVENT_KEY_UP)
@@ -829,18 +526,25 @@ int Phrases(wchar_t* pphrase )
 							if (wcscmp(pressed_letters,braille_key_value_map[i].key) == 0)
 							{
 								if (braille_letter_pos == 0)
-									tmp = braille_key_value_map[i].value_begin[0];
-								else if (braille_letter_pos == 1)
-									tmp = braille_key_value_map[i].value_middle[0];
-								else
-									tmp = braille_key_value_map[i].value_end[0];
+                                    typed_ch =
+                                        braille_key_value_map[i].value_begin[0];
+                                else if (braille_letter_pos == 1)
+                                {
+                                    typed_ch = braille_key_value_map[i]
+                                                   .value_middle[0];
+                                }
+                                else
+                                {
+                                    typed_ch =
+                                        braille_key_value_map[i].value_end[0];
+                                }
 
                                 check_key = 1;
 								if (braille_capital)
 									{
-										shift_pressed = 1;
-										braille_capital = 0;
-									}
+                                        cap_prefix      = 1;
+                                        braille_capital = 0;
+                                    }
 								if (braille_numbers)
 									{
 										braille_numbers = 0;
@@ -870,9 +574,9 @@ int Phrases(wchar_t* pphrase )
                 /* --------- Space is always space :) -----------------*/
                 else
 				{
-					tmp = L' ';
-					check_key = 1;
-				}
+                    typed_ch  = L' ';
+                    check_key = 1;
+                }
             }
         }
         /* End of "if(event.type == SDL_EVENT_KEY_UP)" block  --*/
@@ -888,15 +592,18 @@ int Phrases(wchar_t* pphrase )
                 continue;
             }
 
-            /* Change to uppercase if shift used */
-            if (shift_pressed)
+            /* Apply braille capital-prefix (set by the chord decode above
+             * when the previous chord was 'g'). One-shot: clear after use
+             * so it doesn't bleed into the next chord. */
+            if (cap_prefix)
             {
-                tmp = toupper(tmp);
+                typed_ch   = toupper(typed_ch);
+                cap_prefix = 0;
             }
 
             if (key != -1)
             {
-                updatekeylist(key, tmp);
+                updatekeylist(key, typed_ch);
             }
 
             /* Record elapsed time for this keypress and update running total: */
@@ -925,13 +632,8 @@ int Phrases(wchar_t* pphrase )
             }
             sprintf(accuracy_str, "%.1f%%", accuracy * 100);
 
-            /****************************************************/
             /*  ---------- If user typed correct character, handle it: --------------- */
-            /* SDL3 dropped event.key.keysym.unicode (the typed glyph with Shift
-         * applied). Use `tmp`, which the switch above + toupper-on-shift
-         * already resolved to the actual character — works for upper/lower
-         * case letters and shifted symbols. */
-            if (phrases[cur_phrase][cursor] == tmp)
+            if (phrases[cur_phrase][cursor] == typed_ch)
             {
                 cursor++;
                 correct_chars++;
